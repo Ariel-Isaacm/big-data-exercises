@@ -37,15 +37,15 @@ public class MovieRecommender {
 
             users = HashBiMap.create();
             products = HashBiMap.create();
-            //limpia el archivo
-            perdonaATuPuebloSeñor();
 
-            LineNumberReader lnr = new LineNumberReader(new FileReader(new File("señorTenPiedaddeNosotros.txt")));
+            filterFile();
+
+            LineNumberReader lnr = new LineNumberReader(new FileReader(new File("dataSet.txt")));
             lnr.skip(Long.MAX_VALUE);
             lineas = lnr.getLineNumber();
             lnr.close();
 
-            model = new FileDataModel(new File("señorTenPiedaddeNosotros.txt"));
+            model = new FileDataModel(new File("dataSet.txt"));
             similarity = new PearsonCorrelationSimilarity(model);
 
             neighborhood = new ThresholdUserNeighborhood(.1, similarity, model);
@@ -86,37 +86,34 @@ public class MovieRecommender {
         return recomendaciones;
     }
 
-    public void perdonaATuPuebloSeñor() throws IOException {
+    public void filterFile() throws IOException {
 
         InputStream fileStream = new FileInputStream("movies.txt.gz");
         InputStream gzipStream = new GZIPInputStream(fileStream);
         Reader decoder = new InputStreamReader(gzipStream);
         BufferedReader br = new BufferedReader(decoder);
-        BufferedWriter bw = new BufferedWriter(new FileWriter("señorTenPiedaddeNosotros.txt"));
+        BufferedWriter bw = new BufferedWriter(new FileWriter("dataSet.txt"));
 
         String line;
         String aux[] = {"", ""};
         System.out.println("Procesando Datos crudos");
         while ((line = br.readLine()) != null) {
 
-            if (line.startsWith("product/productId:")) {
+            if (line.contains("product/productId:")) {
                 aux[1] = line.substring(line.lastIndexOf(' ') + 1);
                 if (!products.containsKey(aux[1])) {
                     products.put(aux[1], products.size() + 1 + "");
-
                 }
-            } else if (line.startsWith("review/userId:")) {
+            } else if (line.contains("review/userId:")) {
 
                 aux[0] = line.substring(line.lastIndexOf(' ') + 1);
                 if (!users.containsKey(aux[0])) {
                     users.put(aux[0], users.size() + 1 + "");
                 }
-            } else if (line.startsWith("review/score:")) {
+            } else if (line.contains("review/score:")) {
                 bw.write(users.get(aux[0]) + "," + products.get(aux[1]) + "," + line.substring(line.lastIndexOf(' ') + 1) + "\n");
 
             }
-
-
         }
         br.close();
         bw.close();
