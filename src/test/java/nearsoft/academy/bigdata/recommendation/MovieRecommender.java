@@ -3,7 +3,6 @@ package nearsoft.academy.bigdata.recommendation;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import org.apache.mahout.cf.taste.common.TasteException;
-import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
 import org.apache.mahout.cf.taste.impl.neighborhood.ThresholdUserNeighborhood;
 import org.apache.mahout.cf.taste.impl.recommender.GenericUserBasedRecommender;
 import org.apache.mahout.cf.taste.impl.similarity.PearsonCorrelationSimilarity;
@@ -24,13 +23,10 @@ import java.util.zip.GZIPInputStream;
 
 public class MovieRecommender {
     private DataModel model;
-    private UserSimilarity similarity;
-    private UserNeighborhood neighborhood;
-    private UserBasedRecommender recommender;
-    private List<RecommendedItem> recommendations;
-    private int lineas;
+    private int lines;
     private BiMap<String, String> users;
     private BiMap<String, String> products;
+    private UserBasedRecommender recommender;
 
     public MovieRecommender(String path) {
         try {
@@ -38,17 +34,18 @@ public class MovieRecommender {
             users = HashBiMap.create();
             products = HashBiMap.create();
 
-            filterFile();
+            //filterFile(path);
 
-            LineNumberReader lnr = new LineNumberReader(new FileReader(new File("dataSet.txt")));
-            lnr.skip(Long.MAX_VALUE);
-            lineas = lnr.getLineNumber();
-            lnr.close();
+//            LineNumberReader lnr = new LineNumberReader(new FileReader(new File("dataSet.txt")));
+//            lnr.skip(Long.MAX_VALUE);
+//            lines = lnr.getLineNumber();
+//            lnr.close();
 
-            model = new FileDataModel(new File("dataSet.txt"));
-            similarity = new PearsonCorrelationSimilarity(model);
+            //model = new FileDataModel(new File("dataSet.txt"));
+            model = new CustomFileDataModel(new File(path));
+            UserSimilarity similarity = new PearsonCorrelationSimilarity(model);
 
-            neighborhood = new ThresholdUserNeighborhood(.1, similarity, model);
+            UserNeighborhood neighborhood = new ThresholdUserNeighborhood(.1, similarity, model);
             recommender = new GenericUserBasedRecommender(model, neighborhood, similarity);
 
 
@@ -59,7 +56,7 @@ public class MovieRecommender {
 
 
     public int getTotalReviews() {
-        return lineas;
+        return lines;
     }
 
     public int getTotalProducts() throws TasteException {
@@ -72,8 +69,8 @@ public class MovieRecommender {
 
 
     public List<String> getRecommendationsForUser(String userId) {
+        List<RecommendedItem> recommendations = null;
         try {
-
             recommendations = recommender.recommend(Long.parseLong(users.get(userId)), 100000);
 
         } catch (Exception e) {
@@ -86,9 +83,9 @@ public class MovieRecommender {
         return recomendaciones;
     }
 
-    public void filterFile() throws IOException {
+    public void filterFile(String path) throws IOException {
 
-        InputStream fileStream = new FileInputStream("movies.txt.gz");
+        InputStream fileStream = new FileInputStream(path);
         InputStream gzipStream = new GZIPInputStream(fileStream);
         Reader decoder = new InputStreamReader(gzipStream);
         BufferedReader br = new BufferedReader(decoder);
@@ -96,7 +93,7 @@ public class MovieRecommender {
 
         String line;
         String aux[] = {"", ""};
-        System.out.println("Procesando Datos crudos");
+        System.out.println("Processing Data");
         while ((line = br.readLine()) != null) {
 
             if (line.contains("product/productId:")) {
