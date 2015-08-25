@@ -4,11 +4,15 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import org.apache.mahout.cf.taste.impl.common.FastByIDMap;
 import org.apache.mahout.cf.taste.impl.common.FastIDSet;
+import org.apache.mahout.cf.taste.impl.model.GenericDataModel;
 import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
+import org.apache.mahout.cf.taste.model.DataModel;
+import org.apache.mahout.cf.taste.model.Preference;
 import org.apache.mahout.common.iterator.FileLineIterator;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 
 /**
  * Created by Ariel Isaac Machado on 21/08/15.
@@ -17,6 +21,7 @@ public class CustomFileDataModel extends FileDataModel {
     private BiMap<String, String> users;
     private BiMap<String, String> products;
     private File dataFile;
+    private int count;
 
 
     public CustomFileDataModel(File DataFile) throws IOException {
@@ -29,12 +34,24 @@ public class CustomFileDataModel extends FileDataModel {
         processFile(dataOrUpdateFileIterator, data, timestamps, true);
     }
 
+    public BiMap<String, String> getUsers() {
+        return users;
+    }
+
+    public BiMap<String, String> getProducts() {
+        return products;
+    }
+
+    public int getCount() {
+        return count;
+    }
+
     @Override
     protected void processFile(FileLineIterator dataOrUpdateFileIterator, FastByIDMap<?> data, FastByIDMap<FastByIDMap<Long>> timestamps, boolean fromPriorData) {
         users = HashBiMap.create();
         products = HashBiMap.create();
         System.out.println("Reading file info...");
-        int count = 0;
+        count = 0;
         String aux[] = {"", ""};
 
         while (dataOrUpdateFileIterator.hasNext()) {
@@ -55,7 +72,7 @@ public class CustomFileDataModel extends FileDataModel {
                 if (++count % 1000000 == 0) {
 
                     System.out.println("Processed " + count + " lines");
-                    break;
+
 
                 }
 
@@ -64,6 +81,18 @@ public class CustomFileDataModel extends FileDataModel {
         }
         System.out.println("Read lines: " + count);
 
+    }
+
+    @Override
+    protected DataModel buildModel() throws IOException {
+
+        dataFile = super.getDataFile();
+
+        FastByIDMap<FastByIDMap<Long>> timestamps = new FastByIDMap<FastByIDMap<Long>>();
+        FastByIDMap<Collection<Preference>> data = new FastByIDMap<Collection<Preference>>();
+        processFile(new FileLineIterator(dataFile, false), data, timestamps, false);
+
+        return new GenericDataModel(GenericDataModel.toDataMap(data, true), timestamps);
     }
 
 }

@@ -1,7 +1,6 @@
 package nearsoft.academy.bigdata.recommendation;
 
 import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.impl.neighborhood.ThresholdUserNeighborhood;
 import org.apache.mahout.cf.taste.impl.recommender.GenericUserBasedRecommender;
@@ -31,24 +30,14 @@ public class MovieRecommender {
     public MovieRecommender(String path) {
         try {
 
-            users = HashBiMap.create();
-            products = HashBiMap.create();
-
-            //filterFile(path);
-
-//            LineNumberReader lnr = new LineNumberReader(new FileReader(new File("dataSet.txt")));
-//            lnr.skip(Long.MAX_VALUE);
-//            lines = lnr.getLineNumber();
-//            lnr.close();
-
-            //model = new FileDataModel(new File("dataSet.txt"));
             model = new CustomFileDataModel(new File(path));
             UserSimilarity similarity = new PearsonCorrelationSimilarity(model);
 
             UserNeighborhood neighborhood = new ThresholdUserNeighborhood(.1, similarity, model);
             recommender = new GenericUserBasedRecommender(model, neighborhood, similarity);
-
-
+            lines = ((CustomFileDataModel) model).getCount();
+            users = ((CustomFileDataModel) model).getUsers();
+            products = ((CustomFileDataModel) model).getProducts();
         } catch (Exception e) {
             System.out.println(e.toString());
         }
