@@ -26,7 +26,6 @@ public class CustomFileDataModel extends FileDataModel {
 
     public CustomFileDataModel(File DataFile) throws IOException {
         super(DataFile, false, 60 * 1000L, " ");
-        this.dataFile = DataFile;
     }
 
     @Override

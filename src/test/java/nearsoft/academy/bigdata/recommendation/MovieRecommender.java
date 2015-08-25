@@ -11,10 +11,10 @@ import org.apache.mahout.cf.taste.recommender.RecommendedItem;
 import org.apache.mahout.cf.taste.recommender.UserBasedRecommender;
 import org.apache.mahout.cf.taste.similarity.UserSimilarity;
 
-import java.io.*;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.GZIPInputStream;
+import java.util.logging.Logger;
 
 /**
  * Created by Ariel Isaac Machado on 18/08/15.
@@ -26,10 +26,10 @@ public class MovieRecommender {
     private BiMap<String, String> users;
     private BiMap<String, String> products;
     private UserBasedRecommender recommender;
-
+    private Logger LOGGER;
     public MovieRecommender(String path) {
         try {
-
+            LOGGER = Logger.getLogger("System's Logger");
             model = new CustomFileDataModel(new File(path));
             UserSimilarity similarity = new PearsonCorrelationSimilarity(model);
 
@@ -39,7 +39,7 @@ public class MovieRecommender {
             users = ((CustomFileDataModel) model).getUsers();
             products = ((CustomFileDataModel) model).getProducts();
         } catch (Exception e) {
-            System.out.println(e.toString());
+            LOGGER.info("An exception has occured creating the model\n" + e);
         }
     }
 
@@ -63,7 +63,7 @@ public class MovieRecommender {
             recommendations = recommender.recommend(Long.parseLong(users.get(userId)), 100000);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.info("An exception has occurred getting recomendations \n" + e);
         }
         List<String> recomendaciones = new ArrayList();
         for (RecommendedItem item : recommendations) {
@@ -71,42 +71,6 @@ public class MovieRecommender {
         }
         return recomendaciones;
     }
-
-    public void filterFile(String path) throws IOException {
-
-        InputStream fileStream = new FileInputStream(path);
-        InputStream gzipStream = new GZIPInputStream(fileStream);
-        Reader decoder = new InputStreamReader(gzipStream);
-        BufferedReader br = new BufferedReader(decoder);
-        BufferedWriter bw = new BufferedWriter(new FileWriter("dataSet.txt"));
-
-        String line;
-        String aux[] = {"", ""};
-        System.out.println("Processing Data");
-        while ((line = br.readLine()) != null) {
-
-            if (line.contains("product/productId:")) {
-                aux[1] = line.substring(line.lastIndexOf(' ') + 1);
-                if (!products.containsKey(aux[1])) {
-                    products.put(aux[1], products.size() + 1 + "");
-                }
-            } else if (line.contains("review/userId:")) {
-
-                aux[0] = line.substring(line.lastIndexOf(' ') + 1);
-                if (!users.containsKey(aux[0])) {
-                    users.put(aux[0], users.size() + 1 + "");
-                }
-            } else if (line.contains("review/score:")) {
-                bw.write(users.get(aux[0]) + "," + products.get(aux[1]) + "," + line.substring(line.lastIndexOf(' ') + 1) + "\n");
-
-            }
-        }
-        br.close();
-        bw.close();
-
-
-    }
-
 
 }
 
