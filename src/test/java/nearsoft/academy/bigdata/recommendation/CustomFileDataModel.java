@@ -49,9 +49,9 @@ public class CustomFileDataModel extends FileDataModel {
     protected void processFile(FileLineIterator dataOrUpdateFileIterator, FastByIDMap<?> data, FastByIDMap<FastByIDMap<Long>> timestamps, boolean fromPriorData) {
         users = HashBiMap.create();
         products = HashBiMap.create();
-        System.out.println("Reading file info...");
         count = 0;
         String aux[] = {"", ""};
+        StringBuilder lineToProcess = new StringBuilder("");
 
         while (dataOrUpdateFileIterator.hasNext()) {
             String line = dataOrUpdateFileIterator.next();
@@ -67,18 +67,16 @@ public class CustomFileDataModel extends FileDataModel {
                     users.put(aux[0], users.size() + 1 + "");
                 }
             } else if (line.contains("review/score:")) {
-                processLine(users.get(aux[0]) + " " + products.get(aux[1]) + " " + line.substring(line.lastIndexOf(' ') + 1), data, timestamps, fromPriorData);
-                if (++count % 1000000 == 0) {
+                lineToProcess.append(users.get(aux[0]));
+                lineToProcess.append(" ");
+                lineToProcess.append(products.get(aux[1]));
+                lineToProcess.append(" ");
+                lineToProcess.append(line.substring(line.lastIndexOf(' ') + 1));
 
-                    System.out.println("Processed " + count + " lines");
-
-
-                }
-
-
+                processLine(lineToProcess.toString(), data, timestamps, fromPriorData);
+                count++;
             }
         }
-        System.out.println("Read lines: " + count);
 
     }
 
@@ -86,7 +84,6 @@ public class CustomFileDataModel extends FileDataModel {
     protected DataModel buildModel() throws IOException {
 
         dataFile = super.getDataFile();
-
         FastByIDMap<FastByIDMap<Long>> timestamps = new FastByIDMap<FastByIDMap<Long>>();
         FastByIDMap<Collection<Preference>> data = new FastByIDMap<Collection<Preference>>();
         processFile(new FileLineIterator(dataFile, false), data, timestamps, false);
