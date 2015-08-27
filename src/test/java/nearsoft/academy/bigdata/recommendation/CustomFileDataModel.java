@@ -74,6 +74,7 @@ public class CustomFileDataModel extends FileDataModel {
                 lineToProcess.append(line.substring(line.lastIndexOf(' ') + 1));
 
                 processLine(lineToProcess.toString(), data, timestamps, fromPriorData);
+                lineToProcess.setLength(0);
                 count++;
             }
         }
