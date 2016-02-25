@@ -18,8 +18,8 @@ import java.util.Collection;
  * Created by Ariel Isaac Machado on 21/08/15.
  */
 public class CustomFileDataModel extends FileDataModel {
-    private BiMap<String, String> users;
-    private BiMap<String, String> products;
+    private BiMap<String, Integer> users;
+    private BiMap<String, Integer> products;
     private File dataFile;
     private int count;
 
@@ -33,11 +33,11 @@ public class CustomFileDataModel extends FileDataModel {
         processFile(dataOrUpdateFileIterator, data, timestamps, true);
     }
 
-    public BiMap<String, String> getUsers() {
+    public BiMap<String, Integer> getUsers() {
         return users;
     }
 
-    public BiMap<String, String> getProducts() {
+    public BiMap<String, Integer> getProducts() {
         return products;
     }
 
@@ -58,13 +58,13 @@ public class CustomFileDataModel extends FileDataModel {
             if (line.contains("product/productId:")) {
                 aux[1] = line.substring(line.lastIndexOf(' ') + 1);
                 if (!products.containsKey(aux[1])) {
-                    products.put(aux[1], products.size() + 1 + "");
+                    products.put(aux[1], products.size());
                 }
             } else if (line.contains("review/userId:")) {
 
                 aux[0] = line.substring(line.lastIndexOf(' ') + 1);
                 if (!users.containsKey(aux[0])) {
-                    users.put(aux[0], users.size() + 1 + "");
+                    users.put(aux[0], users.size() + 1);
                 }
             } else if (line.contains("review/score:")) {
                 lineToProcess.append(users.get(aux[0]));

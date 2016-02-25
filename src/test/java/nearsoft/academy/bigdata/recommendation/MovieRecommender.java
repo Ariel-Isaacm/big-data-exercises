@@ -22,12 +22,12 @@ import java.util.List;
 public class MovieRecommender {
     private CustomFileDataModel model;
     private int lines;
-    private BiMap<String, String> users;
-    private BiMap<String, String> products;
+    private BiMap<String, Integer> users;
+    private BiMap<String, Integer> products;
     private UserBasedRecommender recommender;
 
     public MovieRecommender(String path) throws IOException, TasteException {
-      
+
             model = new CustomFileDataModel(new File(path));
             UserSimilarity similarity = new PearsonCorrelationSimilarity(model);
             UserNeighborhood neighborhood = new ThresholdUserNeighborhood(.1, similarity, model);
@@ -53,10 +53,10 @@ public class MovieRecommender {
 
     public List<String> getRecommendationsForUser(String userId) throws TasteException {
         List<RecommendedItem> recommendations = null;
-            recommendations = recommender.recommend(Long.parseLong(users.get(userId)), 100000);
+            recommendations = recommender.recommend(users.get(userId), 3);
         List<String> recomendationsForUser = new ArrayList();
         for (RecommendedItem item : recommendations) {
-            recomendationsForUser.add(products.inverse().get(item.getItemID() + ""));
+            recomendationsForUser.add(products.inverse().get((int)item.getItemID()));
         }
         return recomendationsForUser;
     }
